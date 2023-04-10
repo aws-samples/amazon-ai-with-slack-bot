@@ -1,0 +1,4 @@
+aws-secretsmanager-caching
+slack_sdk
+openai
+redis

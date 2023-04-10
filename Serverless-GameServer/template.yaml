@@ -1,0 +1,672 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Purgatory-Server-Production
+
+Globals:
+  Function:
+    Timeout: 300
+
+Parameters:
+  MainServerTableName:
+    Type: String
+    Default: 'purgatory_connections_production'
+    Description: (Required) The name of the new DynamoDB to store connection identifiers for each connected clients. Minimum 3 characters
+    MinLength: 3
+    MaxLength: 50
+    AllowedPattern: ^[A-Za-z_]+$
+    ConstraintDescription: 'Required. Can be characters and underscore only. No numbers or special characters allowed.'
+
+  CommonResourceTableName:
+    Type: String
+    Default: 'common_resources_production'
+    Description: (Required) The name of the new DynamoDB to store connection identifiers for each connected clients. Minimum 3 characters
+    MinLength: 3
+    MaxLength: 50
+    AllowedPattern: ^[A-Za-z_]+$
+    ConstraintDescription: 'Required. Can be characters and underscore only. No numbers or special characters allowed.'
+
+  PlayerInfoTableName:
+    Type: String
+    Default: 'player_info_production'
+    Description: (Required) The name of the new DynamoDB to store connection identifiers for each connected clients. Minimum 3 characters
+    MinLength: 3
+    MaxLength: 50
+    AllowedPattern: ^[A-Za-z_]+$
+    ConstraintDescription: 'Required. Can be characters and underscore only. No numbers or special characters allowed.'
+
+Resources:
+
+#------ APIGATEWAY Websocket  ------#
+  PurgatoryMainEntry:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: PurgatoryMain-Prod
+      ProtocolType: WEBSOCKET
+      RouteSelectionExpression: "$request.body.action"
+
+  DefaultRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref PurgatoryMainEntry
+      RouteKey: "$default"
+      AuthorizationType: NONE
+      OperationName: DefaultRoute
+      Target: !Join
+        - '/'
+        - - 'integrations'
+          - !Ref MainServerIntegration
+
+  ConnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref PurgatoryMainEntry
+      RouteKey: "$connect"
+      AuthorizationType: NONE
+      OperationName: ConnectRoute
+      Target: !Join
+        - '/'
+        - - 'integrations'
+          - !Ref MainServerIntegration
+
+  DisconnectRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref PurgatoryMainEntry
+      RouteKey: "$disconnect"
+      AuthorizationType: NONE
+      OperationName: DisconnectRoute
+      Target: !Join
+        - '/'
+        - - 'integrations'
+          - !Ref MainServerIntegration
+
+  TestRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref PurgatoryMainEntry
+      RouteKey: "test"
+      AuthorizationType: NONE
+      OperationName: TestRoute
+      Target: !Join
+        - '/'
+        - - 'integrations'
+          - !Ref MainServerIntegration
+
+  JoinRoomRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref PurgatoryMainEntry
+      RouteKey: "joinroom"
+      AuthorizationType: NONE
+      OperationName: JoinRoomRoute
+      Target: !Join
+        - '/'
+        - - 'integrations'
+          - !Ref RoomMgrIntegration
+
+  ExitRoomRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref PurgatoryMainEntry
+      RouteKey: "exitroom"
+      AuthorizationType: NONE
+      OperationName: ExitRoomRoute
+      Target: !Join
+        - '/'
+        - - 'integrations'
+          - !Ref RoomMgrIntegration
+
+  DestroyRoomRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref PurgatoryMainEntry
+      RouteKey: "destroyroom"
+      AuthorizationType: NONE
+      OperationName: DestroyRoomRoute
+      Target: !Join
+        - '/'
+        - - 'integrations'
+          - !Ref RoomMgrIntegration
+
+  AttackRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref PurgatoryMainEntry
+      RouteKey: "attack"
+      AuthorizationType: NONE
+      OperationName: AttackRoute
+      Target: !Join
+        - '/'
+        - - 'integrations'
+          - !Ref BattleMgrIntegration
+
+  DieRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref PurgatoryMainEntry
+      RouteKey: "die"
+      AuthorizationType: NONE
+      OperationName: DieRoute
+      Target: !Join
+        - '/'
+        - - 'integrations'
+          - !Ref BattleMgrIntegration
+
+  SyncScoreRoute:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId: !Ref PurgatoryMainEntry
+      RouteKey: "syncscore"
+      AuthorizationType: NONE
+      OperationName: SyncScoreRoute
+      Target: !Join
+        - '/'
+        - - 'integrations'
+          - !Ref BattleMgrIntegration
+
+  MainServerIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref PurgatoryMainEntry
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Join
+        - ''
+        - - 'arn:'
+          - !Ref AWS::Partition
+          - ':apigateway:'
+          - !Ref AWS::Region
+          - ':lambda:path/2015-03-31/functions/'
+          - !GetAtt MainServerFunction.Arn
+          - '/invocations'
+
+  RoomMgrIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref PurgatoryMainEntry
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Join
+        - ''
+        - - 'arn:'
+          - !Ref AWS::Partition
+          - ':apigateway:'
+          - !Ref AWS::Region
+          - ':lambda:path/2015-03-31/functions/'
+          - !GetAtt RoomMgrFunction.Arn
+          - '/invocations'
+
+  BattleMgrIntegration:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId: !Ref PurgatoryMainEntry
+      IntegrationType: AWS_PROXY
+      IntegrationUri: !Join
+        - ''
+        - - 'arn:'
+          - !Ref AWS::Partition
+          - ':apigateway:'
+          - !Ref AWS::Region
+          - ':lambda:path/2015-03-31/functions/'
+          - !GetAtt BattleMgrFunction.Arn
+          - '/invocations'
+
+  MainServerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: 'Handle all connections'
+      CodeUri: main-server/
+      Handler: main.main_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref UtilsLayer
+      Role: "arn:aws:iam::123456789:role/Lambda-Admin-Role"
+      Environment:
+        Variables:
+          mainserver_tablename: !Ref MainServerTableName
+          commonresource_tablename: !Ref CommonResourceTableName
+          palyerinfo_tablename: !Ref PlayerInfoTableName
+
+  RoomMgrFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: 'Battle room service'
+      CodeUri: room-manager/
+      Handler: main.main_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref UtilsLayer
+      Role: "arn:aws:iam::123456789:role/Lambda-Admin-Role"
+      Environment:
+        Variables:
+          mainserver_tablename: !Ref MainServerTableName
+          commonresource_tablename: !Ref CommonResourceTableName
+          palyerinfo_tablename: !Ref PlayerInfoTableName
+
+  BattleMgrFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: 'Battle'
+      CodeUri: battle-manager/
+      Handler: main.main_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref UtilsLayer
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0ab3fc5cc2d25d642
+        SubnetIds:
+          - subnet-088fc979101fee853
+          - subnet-0cdcadce081f72e2c
+          - subnet-034744350c46eb2b5
+      Role: "arn:aws:iam::123456789:role/Lambda-Admin-Role"
+      Environment:
+        Variables:
+          mainserver_tablename: !Ref MainServerTableName
+          commonresource_tablename: !Ref CommonResourceTableName
+          palyerinfo_tablename: !Ref PlayerInfoTableName
+
+#  Deployment:
+#    Type: AWS::ApiGatewayV2::Deployment
+#    DependsOn:
+#      - ConnectRoute
+#      - DisconnectRoute
+#      - JoinRoomRoute
+#      - ExitRoomRoute
+#      - DestroyRoomRoute
+#      - AttackRoute
+#      - DieRoute
+#      - SyncScoreRoute
+#    Properties:
+#      ApiId: !Ref PurgatoryMainEntry
+
+  Stage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      StageName: production
+      Description: "production env"
+      ApiId: !Ref PurgatoryMainEntry
+      AccessLogSettings:
+        DestinationArn: arn:aws:logs:ap-southeast-1:123456789:log-group:Purgatory-Server-ApiGateway
+        Format: '{"requestId":"$context.requestId", "ip": "$context.identity.sourceIp", "caller":"$context.identity.caller", "user":"$context.identity.user","requestTime":"$context.requestTime", "eventType":"$context.eventType","routeKey":"$context.routeKey", "status":"$context.status","connectionId":"$context.connectionId"}'
+
+#------ APIGATEWAY HTTP ------#
+  PurgatoryPlayerMgr:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: PurgatoryPlayerMgr-Prod
+      StageName: production
+
+  PurgatoryGameMgr:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: PurgatoryGameMgr-Prod
+      StageName: production
+
+  CreatePlayerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: 'Create Player'
+      CodeUri: player-manager/
+      Handler: main.main_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref UtilsLayer
+      Role: "arn:aws:iam::123456789:role/Lambda-Admin-Role"
+      Environment:
+        Variables:
+          mainserver_tablename: !Ref MainServerTableName
+          commonresource_tablename: !Ref CommonResourceTableName
+          palyerinfo_tablename: !Ref PlayerInfoTableName
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0ab3fc5cc2d25d642
+        SubnetIds:
+          - subnet-088fc979101fee853
+          - subnet-0cdcadce081f72e2c
+          - subnet-034744350c46eb2b5
+      Events:
+        LambdaEvent:
+          Type: Api
+          Properties:
+            Path: /create_user
+            Method: post
+            RestApiId: !Ref PurgatoryPlayerMgr
+
+  DeletePlayerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: 'Delete Player'
+      CodeUri: player-manager/
+      Handler: main.main_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Layers:
+        - !Ref UtilsLayer
+      Role: "arn:aws:iam::123456789:role/Lambda-Admin-Role"
+      Environment:
+        Variables:
+          mainserver_tablename: !Ref MainServerTableName
+          commonresource_tablename: !Ref CommonResourceTableName
+          palyerinfo_tablename: !Ref PlayerInfoTableName
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0ab3fc5cc2d25d642
+        SubnetIds:
+          - subnet-088fc979101fee853
+          - subnet-0cdcadce081f72e2c
+          - subnet-034744350c46eb2b5
+      Events:
+        LambdaEvent:
+          Type: Api
+          Properties:
+            Path: /delete_user
+            Method: post
+            RestApiId: !Ref PurgatoryPlayerMgr
+
+  SetScoreSingleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: 'Set score single'
+      CodeUri: player-manager/
+      Handler: main.main_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Layers:
+      - !Ref UtilsLayer
+      Role: "arn:aws:iam::123456789:role/Lambda-Admin-Role"
+      Environment:
+        Variables:
+          mainserver_tablename: !Ref MainServerTableName
+          commonresource_tablename: !Ref CommonResourceTableName
+          palyerinfo_tablename: !Ref PlayerInfoTableName
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0ab3fc5cc2d25d642
+        SubnetIds:
+          - subnet-088fc979101fee853
+          - subnet-0cdcadce081f72e2c
+          - subnet-034744350c46eb2b5
+      Events:
+        LambdaEvent:
+          Type: Api
+          Properties:
+            Path: /set_score_single
+            Method: post
+            RestApiId: !Ref PurgatoryPlayerMgr
+
+  GetLeaderboardsSingleFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: 'Get leaderboards_single'
+      CodeUri: player-manager/
+      Handler: main.main_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Layers:
+      - !Ref UtilsLayer
+      Role: "arn:aws:iam::123456789:role/Lambda-Admin-Role"
+      Environment:
+        Variables:
+          mainserver_tablename: !Ref MainServerTableName
+          commonresource_tablename: !Ref CommonResourceTableName
+          palyerinfo_tablename: !Ref PlayerInfoTableName
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0ab3fc5cc2d25d642
+        SubnetIds:
+          - subnet-088fc979101fee853
+          - subnet-0cdcadce081f72e2c
+          - subnet-034744350c46eb2b5
+      Events:
+        LambdaEvent:
+          Type: Api
+          Properties:
+            Path: /get_leaderboards_single
+            Method: get
+            RestApiId: !Ref PurgatoryPlayerMgr
+
+  GetLeaderboardsMultiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: 'Get leaderboards_multi'
+      CodeUri: player-manager/
+      Handler: main.main_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Layers:
+      - !Ref UtilsLayer
+      Role: "arn:aws:iam::123456789:role/Lambda-Admin-Role"
+      Environment:
+        Variables:
+          mainserver_tablename: !Ref MainServerTableName
+          commonresource_tablename: !Ref CommonResourceTableName
+          palyerinfo_tablename: !Ref PlayerInfoTableName
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0ab3fc5cc2d25d642
+        SubnetIds:
+          - subnet-088fc979101fee853
+          - subnet-0cdcadce081f72e2c
+          - subnet-034744350c46eb2b5
+      Events:
+        LambdaEvent:
+          Type: Api
+          Properties:
+            Path: /get_leaderboards_multi
+            Method: get
+            RestApiId: !Ref PurgatoryPlayerMgr
+
+  GMClearDataFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: 'Gamemanager'
+      CodeUri: game-manager/
+      Handler: main.main_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Layers:
+      - !Ref UtilsLayer
+      Role: "arn:aws:iam::123456789:role/Lambda-Admin-Role"
+      Environment:
+        Variables:
+          mainserver_tablename: !Ref MainServerTableName
+          commonresource_tablename: !Ref CommonResourceTableName
+          palyerinfo_tablename: !Ref PlayerInfoTableName
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0ab3fc5cc2d25d642
+        SubnetIds:
+          - subnet-088fc979101fee853
+          - subnet-0cdcadce081f72e2c
+          - subnet-034744350c46eb2b5
+      Events:
+        LambdaEvent:
+          Type: Api
+          Properties:
+            Path: /clear_all_data
+            Method: post
+            RestApiId: !Ref PurgatoryGameMgr
+
+  GMTmpTestFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: 'Gamemanager'
+      CodeUri: game-manager/
+      Handler: main.main_handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Layers:
+      - !Ref UtilsLayer
+      Role: "arn:aws:iam::123456789:role/Lambda-Admin-Role"
+      Environment:
+        Variables:
+          mainserver_tablename: !Ref MainServerTableName
+          commonresource_tablename: !Ref CommonResourceTableName
+          palyerinfo_tablename: !Ref PlayerInfoTableName
+      VpcConfig:
+        SecurityGroupIds:
+          - sg-0ab3fc5cc2d25d642
+        SubnetIds:
+          - subnet-088fc979101fee853
+          - subnet-0cdcadce081f72e2c
+          - subnet-034744350c46eb2b5
+      Events:
+        LambdaEvent:
+          Type: Api
+          Properties:
+            Path: /tmp_test
+            Method: post
+            RestApiId: !Ref PurgatoryGameMgr
+
+#------ Lambda Functions Layer ------#
+  UtilsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: UtilsLayer-Production
+      ContentUri: utils-layer/
+      CompatibleRuntimes:
+        - python3.9
+    Metadata:
+      BuildMethod: python3.9
+
+#------ Lambda Resource-based policy, which make apigateway have permission to invoke lambda function ------#
+  MainServerPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - PurgatoryMainEntry
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref MainServerFunction
+      Principal: apigateway.amazonaws.com
+
+  RoomMgrPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - PurgatoryMainEntry
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref RoomMgrFunction
+      Principal: apigateway.amazonaws.com
+
+  BattleMgrPermission:
+    Type: AWS::Lambda::Permission
+    DependsOn:
+      - PurgatoryMainEntry
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref BattleMgrFunction
+      Principal: apigateway.amazonaws.com
+
+#------ DynamoDB used by lambda ------#
+  MainServerTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "connection_id"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "connection_id"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      SSESpecification:
+        SSEEnabled: True
+      TableName: !Ref MainServerTableName
+
+  CommonResourceTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "resource_name"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "resource_name"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      SSESpecification:
+        SSEEnabled: True
+      TableName: !Ref CommonResourceTableName
+
+  PlayerInfoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "user_id"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "user_id"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      SSESpecification:
+        SSEEnabled: True
+      TableName: !Ref PlayerInfoTableName
+
+#------ Show outputs of resources ------#
+Outputs:
+  PurgatoryMainEntryURI:
+    Description: "API Gateway endpoint URL for MainServer"
+    Value: !Join [ '',
+      [
+        'wss://', !Ref PurgatoryMainEntry, '.execute-api.',!Ref 'AWS::Region','.amazonaws.com/',!Ref 'Stage', ' ',
+        '[joinroom, exitroom, destroyroom, attack, die, syncscore]'
+      ]
+    ]
+  PurgatoryPlayerMgrURI:
+    Description: "API Gateway endpoint URL for PlayerMgr"
+    Value: !Join [ '',
+      [
+        'https://', !Ref PurgatoryPlayerMgr, '.execute-api.',!Ref 'AWS::Region','.amazonaws.com/',!Ref 'Stage', ' ',
+        '[create_user, delete_user, set_score_single, set_score_multi, get_leaderboards_single]'
+      ]
+    ]
+  PurgatoryGameMgrURI:
+    Description: "API Gateway endpoint URL for PurgatoryGameMgr"
+    Value: !Join [ '',
+      [
+        'https://', !Ref PurgatoryGameMgr, '.execute-api.',!Ref 'AWS::Region','.amazonaws.com/',!Ref 'Stage', ' ',
+        '[clear_all_data, tmp_test]'
+      ]
+    ]
+  MainServerFunctionLog:
+    Description: "tail log cmd"
+    Value: !Join [ '', ['aws logs tail /aws/lambda/', !Ref MainServerFunction, ' --format short --follow --since 10s --filter-pattern $CWPATTERN'] ]
+  RoomMgrFunctionLog:
+    Description: "tail log cmd"
+    Value: !Join [ '', ['aws logs tail /aws/lambda/', !Ref RoomMgrFunction, ' --format short --follow --since 10s --filter-pattern $CWPATTERN'] ]
+  BattleMgrFunctionLog:
+    Description: "tail log cmd"
+    Value: !Join [ '', ['aws logs tail /aws/lambda/', !Ref BattleMgrFunction, ' --format short --follow --since 10s --filter-pattern $CWPATTERN'] ]
+  CreatePlayerFunctionLog:
+    Description: "tail log cmd"
+    Value: !Join [ '', ['aws logs tail /aws/lambda/', !Ref CreatePlayerFunction, ' --format short --follow --since 10s --filter-pattern $CWPATTERN'] ]
+  DeletePlayerFunctionLog:
+    Description: "tail log cmd"
+    Value: !Join [ '', ['aws logs tail /aws/lambda/', !Ref DeletePlayerFunction, ' --format short --follow --since 10s --filter-pattern $CWPATTERN'] ]
+  SetScoreSingleFunctionLog:
+    Description: "tail log cmd"
+    Value: !Join [ '', ['aws logs tail /aws/lambda/', !Ref SetScoreSingleFunction, ' --format short --follow --since 10s --filter-pattern $CWPATTERN'] ]
+  GMClearDataFunctionLog:
+    Description: "tail log cmd"
+    Value: !Join [ '', ['aws logs tail /aws/lambda/', !Ref GMClearDataFunction, ' --format short --follow --since 10s --filter-pattern $CWPATTERN'] ]
+  GMTmpTestFunctionLog:
+    Description: "tail log cmd"
+    Value: !Join [ '', ['aws logs tail /aws/lambda/', !Ref GMTmpTestFunction, ' --format short --follow --since 10s --filter-pattern $CWPATTERN'] ]

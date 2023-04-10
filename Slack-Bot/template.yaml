@@ -1,0 +1,287 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  SlackBots
+  Region us-east-1
+  Serverless resources Lambda Apigateway
+
+Globals:
+  Function:
+    Timeout: 300
+    MemorySize: 128
+
+Resources:
+
+  #--- ApiGateway ---#
+  SlackBotApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Name: SlackBot
+
+  #--- Lambda Functions Layer ---#
+  UtilsLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: UtilsLayer
+      ContentUri: UtilsLayer/
+      CompatibleRuntimes:
+        - python3.9
+    Metadata:
+      BuildMethod: python3.9
+
+  #--- S3 storage of Sagemaker inference output ---#
+  AIGCBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: slack-bot-aigc-images
+
+  #--- Chat ---#
+  ChatEntry:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: Entry/
+      Handler: main.lambda_handler
+      Runtime: python3.9
+      Environment:
+        Variables:
+          SNSTOPIC: !Ref ChatSNS
+          # If get this from Secret Manager, slack slash command may timeout(3s)
+          # If the signing_secret is leaked, others may send unwanted message to you
+          SIGNING_SECRET: 123456789
+      Architectures:
+        - arm64
+      Layers:
+        - !Ref UtilsLayer
+      Policies:
+        - AdministratorAccess
+      Events:
+        Entry:
+          Type: Api
+          Properties:
+            RestApiId: !Ref SlackBotApi
+            Path: /chat
+            Method: post
+  ChatSNS:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      Subscription:
+        - Protocol: lambda
+          Endpoint: !GetAtt ChatBackend.Arn
+      DisplayName: "SlackBots-chat"
+      TopicName: "SlackBots-chat"
+  ChatBackend:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: BackendFuncs/
+      Handler: chat.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - arm64
+      Layers:
+        - !Ref UtilsLayer
+      Policies:
+        - AdministratorAccess
+      Events:
+        SNSEvent:
+          Type: SNS
+          Properties:
+            Topic: !Ref ChatSNS
+
+  #--- Translate ---#
+  TranslateEntry:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: Entry/
+      Handler: main.lambda_handler
+      Runtime: python3.9
+      Environment:
+        Variables:
+          SNSTOPIC: !Ref TranslateSNS
+          SIGNING_SECRET: 89c23762d20066d7bb81a7336841e2ef # If get this from Secret Manager, slack slash command may timeout(3s)
+      Architectures:
+        - arm64
+      Layers:
+        - !Ref UtilsLayer
+      Policies:
+        - AdministratorAccess
+      Events:
+        Entry:
+          Type: Api
+          Properties:
+            RestApiId: !Ref SlackBotApi
+            Path: /translate
+            Method: post
+  TranslateSNS:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      Subscription:
+        - Protocol: lambda
+          Endpoint: !GetAtt TranslateBackend.Arn
+      DisplayName: "SlackBots-translate"
+      TopicName: "SlackBots-translate"
+  TranslateBackend:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: BackendFuncs/
+      Handler: translate.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - arm64
+      Layers:
+        - !Ref UtilsLayer
+      Policies:
+        - AdministratorAccess
+      Events:
+        SNSEvent:
+          Type: SNS
+          Properties:
+            Topic: !Ref TranslateSNS
+
+  #--- T2S ---#
+  T2SEntry:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: Entry/
+      Handler: main.lambda_handler
+      Runtime: python3.9
+      Environment:
+        Variables:
+          SNSTOPIC: !Ref T2SSNS
+          SIGNING_SECRET: 89c23762d20066d7bb81a7336841e2ef # If get this from Secret Manager, slack slash command may timeout(3s)
+      Architectures:
+        - arm64
+      Layers:
+        - !Ref UtilsLayer
+      Policies:
+        - AdministratorAccess
+      Events:
+        Entry:
+          Type: Api
+          Properties:
+            RestApiId: !Ref SlackBotApi
+            Path: /t2s
+            Method: post
+  T2SSNS:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      Subscription:
+        - Protocol: lambda
+          Endpoint: !GetAtt T2SBackend.Arn
+      DisplayName: "SlackBots-t2s"
+      TopicName: "SlackBots-t2s"
+  T2SBackend:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: BackendFuncs/
+      Handler: t2s.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - arm64
+      Layers:
+        - !Ref UtilsLayer
+      Policies:
+        - AdministratorAccess
+      Events:
+        SNSEvent:
+          Type: SNS
+          Properties:
+            Topic: !Ref T2SSNS
+
+  #--- Image ---#
+  ImageEntry:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: Entry/
+      Handler: main.lambda_handler
+      Runtime: python3.9
+      Environment:
+        Variables:
+          SNSTOPIC: !Ref ImageSNS
+          SIGNING_SECRET: 89c23762d20066d7bb81a7336841e2ef # If get this from Secret Manager, slack slash command may timeout(3s)
+      Architectures:
+        - arm64
+      Layers:
+        - !Ref UtilsLayer
+      Policies:
+        - AdministratorAccess
+      Events:
+        Entry:
+          Type: Api
+          Properties:
+            RestApiId: !Ref SlackBotApi
+            Path: /image
+            Method: post
+  ImageSNS:
+    Type: "AWS::SNS::Topic"
+    Properties:
+      Subscription:
+        - Protocol: lambda
+          Endpoint: !GetAtt ImageInvoke.Arn
+      DisplayName: "SlackBots-image"
+      TopicName: "SlackBots-image"
+  ImageInvoke:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: BackendFuncs/
+      Handler: image_invoke.lambda_handler
+      Runtime: python3.9
+      Environment:
+        Variables:
+          SD_CONFIG: SD-Config-1  #SD-Jumpstart
+          Sagemaker_Endpoint: Stable-Diffusion-V1V2 #Stable-Diffusion-Async
+          S3_InputBucket: slack-bot-aigc-images # Output path is set in sagemaker endpoint configuration
+      Architectures:
+        - arm64
+      Layers:
+        - !Ref UtilsLayer
+      Policies:
+        - AdministratorAccess
+      Events:
+        SNSEvent:
+          Type: SNS
+          Properties:
+            Topic: !Ref ImageSNS
+  ImageResponse:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: BackendFuncs/
+      Handler: image_response.lambda_handler
+      Runtime: python3.9
+      Architectures:
+        - arm64
+      Layers:
+        - !Ref UtilsLayer
+      Policies:
+        - AdministratorAccess
+      Events:
+        S3Event:
+          Type: S3
+          Properties:
+            Bucket: !Ref AIGCBucket
+            Events: s3:ObjectCreated:*
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: suffix
+                    Value: '.out'
+
+Outputs:
+  ChatEntryLog:
+    Value: !Join [ '', ['aws logs tail /aws/lambda/', !Ref ChatEntry, ' --format short --follow --since 10s --filter-pattern $CWPATTERN --region us-east-1'] ]
+  ChatBackendLog:
+    Value: !Join [ '', ['aws logs tail /aws/lambda/', !Ref ChatBackend, ' --format short --follow --since 10s --filter-pattern $CWPATTERN --region us-east-1'] ]
+  TranslateEntryLog:
+    Value: !Join [ '', ['aws logs tail /aws/lambda/', !Ref TranslateEntry, ' --format short --follow --since 10s --filter-pattern $CWPATTERN --region us-east-1'] ]
+  TranslateBackendLog:
+    Value: !Join [ '', ['aws logs tail /aws/lambda/', !Ref TranslateBackend, ' --format short --follow --since 10s --filter-pattern $CWPATTERN --region us-east-1'] ]
+  T2SEntryLog:
+    Value: !Join [ '', ['aws logs tail /aws/lambda/', !Ref T2SEntry, ' --format short --follow --since 10s --filter-pattern $CWPATTERN --region us-east-1'] ]
+  T2SBackendLog:
+    Value: !Join [ '', ['aws logs tail /aws/lambda/', !Ref T2SBackend, ' --format short --follow --since 10s --filter-pattern $CWPATTERN --region us-east-1'] ]
+  ImageEntryLog:
+    Value: !Join [ '', ['aws logs tail /aws/lambda/', !Ref ImageEntry, ' --format short --follow --since 10s --filter-pattern $CWPATTERN --region us-east-1'] ]
+  ImageInvokeLog:
+    Value: !Join [ '', ['aws logs tail /aws/lambda/', !Ref ImageInvoke, ' --format short --follow --since 10s --filter-pattern $CWPATTERN --region us-east-1'] ]
+  ImageResponseLog:
+    Value: !Join [ '', ['aws logs tail /aws/lambda/', !Ref ImageResponse, ' --format short --follow --since 10s --filter-pattern $CWPATTERN --region us-east-1'] ]

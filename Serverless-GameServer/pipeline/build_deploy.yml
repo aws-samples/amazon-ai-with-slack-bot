@@ -1,0 +1,15 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      python: 3.9
+    commands:
+      - pip install --upgrade pip
+      - pip install --upgrade awscli aws-sam-cli
+      - pip install --force-reinstall "cryptography==38.0.4"
+  build:
+    commands:
+      - sam build --template-file template.yaml
+      - sam package --s3-bucket purgatory-serverless-artifact-production --template-file .aws-sam/build/template.yaml
+      - sam deploy --stack-name Purgatory-Server-Production --template .aws-sam/build/template.yaml --capabilities CAPABILITY_IAM --region ap-southeast-1 --s3-bucket purgatory-serverless-artifact-production --no-fail-on-empty-changeset --role-arn arn:aws:iam::123456789:role/GrantCloudFormationFullAccessRole
+      - aws apigatewayv2 create-deployment --api-id 8kpvc90bx4 --stage-name production
