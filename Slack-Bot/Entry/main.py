@@ -13,7 +13,7 @@ SUPPORTTED_LANGUAGE = ['af', 'sq', 'am', 'ar', 'hy', 'auto', 'az', 'bn', 'bs', '
                        'mr', 'es-MX', 'mn', 'no', 'ps', 'fa', 'pl', 'pt-PT', 'pt', 'pa', 'ro', 'ru', 'sr', 'si', 'sk',
                        'sl', 'so', 'es', 'sw', 'sv', 'tl', 'ta', 'te', 'th', 'tr', 'uk', 'ur', 'uz', 'vi', 'cy']
 
-SUPPORTTED_SD_MODEL = ['sd1.5', 'sd2.1']
+SUPPORTTED_SD_MODEL = ['rpg', 'chilloutmix', 'kotosmix', 'uber']
 
 # Show usage of different cmd
 def cmd_usage(cmd):
