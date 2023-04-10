@@ -9,9 +9,8 @@ sys.path.append('/opt/python/libs')
 import utils
 
 # Don't get this config from OS environment to avoid resync infra
-SD_CONFIG = "SD-Config-1"
-#Sagemaker_Endpoint = "Stable-Diffusion-V1V2"
-Sagemaker_Endpoint = "Chilloutmix"
+SD_CONFIG = "SD-General"
+Sagemaker_Endpoint = "SixInOne"
 S3_InputBucket = "slack-bot-aigc-images"
 
 # Get secret value from secretsmanager
@@ -27,8 +26,16 @@ def get_ans(prompt, channel):
     inference_id = str(uuid.uuid4())
     sagemaker_client = boto3.client("sagemaker-runtime")
     payload = get_sd_config(SD_CONFIG)
-    payload["txt2img_payload"]["prompt"] = prompt
-    payload["username"] = "chilloutmix"
+    model = prompt.split(" ")[0]
+    prompt = ' '.join(prompt.split(" ")[1:])
+    if utils.is_json(prompt):
+        prompt = json.loads(prompt)
+        for key in payload["txt2img_payload"]:
+            if key in prompt:
+                payload["txt2img_payload"][key] = prompt[key]
+    else:
+        payload["txt2img_payload"]["prompt"] = prompt
+    payload["username"] = model # Create same username as the model(all-in-one-ai)
 
     s3_resource = boto3.resource("s3")
     s3_object = s3_resource.Object(S3_InputBucket, f"inputs/{inference_id}")
@@ -67,7 +74,7 @@ def format_response(prompt, ans):
             "fields": [
                 {
                     "type": "mrkdwn",
-                    "text": f"*Prompt:*"
+                    "text": f"*Input :*"
                 }
             ]
         },
