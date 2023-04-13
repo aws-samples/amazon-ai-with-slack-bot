@@ -85,7 +85,7 @@ def lambda_handler(event, context):
                 s3_client.upload_file("/tmp/tmp.png", bucket, upload_file_key)
                 print(f"Upload file: {upload_file_key}")
 
-                if Enable_Sensitive_Detection:
+                if Enable_Sensitive_Detection and channel != "D04SG9L0286":
                     image_urls.append(detect_sensitive_images(bucket, upload_file_key))
                 else:
                     image_urls.append(f"https://d2hfi0x3wzw6aa.cloudfront.net/{upload_file_key}")
