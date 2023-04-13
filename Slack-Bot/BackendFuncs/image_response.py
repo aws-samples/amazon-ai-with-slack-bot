@@ -101,5 +101,11 @@ def lambda_handler(event, context):
         except Exception as err:
             import traceback
             print(traceback.format_exc())
+            message = "Something is wrong, assistant is being fixed."
+            send_back_response(prompt, message, channel)
+            return {
+                    'statusCode': 200,
+                    'body': message
+            }
 
 

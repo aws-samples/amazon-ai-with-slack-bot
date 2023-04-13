@@ -137,17 +137,9 @@ def lambda_handler(event, context):
         except Exception as err:
             import traceback
             print(traceback.format_exc())
-            if "That model is currently overloaded with other requests" in str(err):
-                message = "That model is currently overloaded with other requests."
-                send_back_response(prompt, message, channel)
-                return {
+            message = "Something is wrong, assistant is being fixed."
+            send_back_response(prompt, message, channel)
+            return {
                     'statusCode': 200,
                     'body': message
-                }
-            else:
-                message = "Something is wrong, assistant is being fixed."
-                send_back_response(prompt, message, channel)
-                return {
-                    'statusCode': 200,
-                    'body': message
-                }
+            }
