@@ -10,6 +10,8 @@ import utils
 
 ddb_table = boto3.resource('dynamodb').Table("Slack-Bot-Image")
 
+Enable_Sensitive_Detection = True
+
 # Formatted message
 def format_response(image_urls, prompt):
     msg = [
@@ -50,33 +52,54 @@ def send_back_response(image_urls, prompt, channel):
         blocks = response
     )
 
+def detect_sensitive_images(bucket, upload_file_key):
+    rekognition_client = boto3.client("rekognition")
+    response = rekognition_client.detect_moderation_labels(Image={'S3Object':{'Bucket':bucket,'Name':upload_file_key}})
+    print(f"---Detected labels for {upload_file_key}---")
+    for label in response['ModerationLabels']:
+        print ("ParentLabel: %s, Label: %s, Confidence: %d" % (label['ParentName'], label['Name'], label['Confidence']))
+    if len(response['ModerationLabels']) == 0:
+        return f"https://d2hfi0x3wzw6aa.cloudfront.net/{upload_file_key}"
+    else:
+        return f"https://d2hfi0x3wzw6aa.cloudfront.net/outputs/sensitive_content.jpeg"
+
+
 def lambda_handler(event, context):
     s3_client = boto3.client("s3")
 
     for record in event["Records"]:
-        bucket = record["s3"]["bucket"]["name"]
-        image_key = record["s3"]["object"]["key"]
-        channel = ddb_table.get_item(Key={'object_key': image_key})["Item"]["channel"]
-        image_content = json.loads(s3_client.get_object(Bucket=bucket, Key=image_key)["Body"].read())
+        try:
+            bucket = record["s3"]["bucket"]["name"]
+            image_key = record["s3"]["object"]["key"]
+            channel = ddb_table.get_item(Key={'object_key': image_key})["Item"]["channel"]
+            image_content = json.loads(s3_client.get_object(Bucket=bucket, Key=image_key)["Body"].read())
 
-        image_urls = []
-        image_prefix = image_key.replace(".out", "")
-        prompt = image_content["parameters"]["prompt"]
-        print("prompt: ", prompt)
-        for i in range(len(image_content["images"])):
-            with open("/tmp/tmp.png", "wb") as image:
-                image.write(base64.decodebytes(image_content["images"][i].encode('ascii')))
-            upload_file_key = f"{image_prefix}_{i}.png"
-            s3_client.upload_file("/tmp/tmp.png", bucket, upload_file_key)
-            print(f"Upload file: {upload_file_key}")
-            image_urls.append(f"https://d2hfi0x3wzw6aa.cloudfront.net/{upload_file_key}")
+            image_urls = []
+            image_prefix = image_key.replace(".out", "")
+            prompt = image_content["parameters"]["prompt"]
+            print("prompt: ", prompt)
+            for i in range(len(image_content["images"])):
+                with open("/tmp/tmp.png", "wb") as image:
+                    image.write(base64.decodebytes(image_content["images"][i].encode('ascii')))
+                upload_file_key = f"{image_prefix}_{i}.png"
+                s3_client.upload_file("/tmp/tmp.png", bucket, upload_file_key)
+                print(f"Upload file: {upload_file_key}")
 
-        s3_client.delete_object(Bucket=bucket, Key=image_key)
-        print(f"Delete origin file: {image_key}")
-        send_back_response(image_urls, prompt, channel)
-        print(f"Images sent successfully")
-        return {
-            'statusCode': 200,
-            'body': "ImageResponse Finished"
-        }
+                if Enable_Sensitive_Detection:
+                    image_urls.append(detect_sensitive_images(bucket, upload_file_key))
+                else:
+                    image_urls.append(f"https://d2hfi0x3wzw6aa.cloudfront.net/{upload_file_key}")
+
+            s3_client.delete_object(Bucket=bucket, Key=image_key)
+            print(f"Delete origin file: {image_key}")
+            send_back_response(image_urls, prompt, channel)
+            print(f"Images sent successfully")
+            return {
+                'statusCode': 200,
+                'body': "ImageResponse Finished"
+            }
+        except Exception as err:
+            import traceback
+            print(traceback.format_exc())
+
 
