@@ -84,11 +84,11 @@ build_and_push.sh.lite us-east-1 # us-east-1 为 region，可以改为自己的 
 
    1. ECR repo 成功创建
 
-      <img src="/Users/ray/Library/Application Support/typora-user-images/image-20230420133507525.png" alt="image-20230420133507525" style="zoom:60%;" />
+      <img src="images/readme/image-20230420133507525.png" alt="image-20230420133507525" style="zoom:60%;" />
 
    2. ECR repo 里有镜像
 
-      <img src="/Users/ray/Library/Application Support/typora-user-images/image-20230420133821708.png" alt="image-20230420133821708" style="zoom:60%;" />
+      <img src="images/readme/image-20230420133821708.png" alt="image-20230420133821708" style="zoom:60%;" />
 
 5. 这里的镜像在未来会在创建 Sagemaker Inference Endpoint 时用上
 
@@ -144,7 +144,7 @@ build_and_push.sh.lite us-east-1 # us-east-1 为 region，可以改为自己的 
 
 在 Sagemaker Studio 中打开 `create_inference_endpoint.ipynb` 这个 Notebook：
 
-![image-20230420140817094](/Users/ray/Library/Application Support/typora-user-images/image-20230420140817094.png)
+![image-20230420140817094](images/readme/image-20230420140817094.png)
 
 
 
@@ -154,9 +154,9 @@ build_and_push.sh.lite us-east-1 # us-east-1 为 region，可以改为自己的 
 
 创建 Notebook
 
-![image-20230420141340953](/Users/ray/Library/Application Support/typora-user-images/image-20230420141340953.png)
+![image-20230420141340953](images/readme/image-20230420141340953.png)
 
-![image-20230420141518370](/Users/ray/Library/Application Support/typora-user-images/image-20230420141518370.png)
+![image-20230420141518370](images/readme/image-20230420141518370.png)
 
 
 
@@ -166,7 +166,7 @@ build_and_push.sh.lite us-east-1 # us-east-1 为 region，可以改为自己的 
 
 将 `amazon-ai-with-slack-bot/stable-diffusion-webui-api-main`目录下的 `create_inference_endpoint.ipynb` 文件上传到 Notebook
 
-![image-20230420142035459](/Users/ray/Library/Application Support/typora-user-images/image-20230420142035459.png)
+![image-20230420142035459](images/readme/image-20230420142035459.png)
 
 
 
