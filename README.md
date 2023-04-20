@@ -2,7 +2,7 @@
 
 Integrate various Amazon AI services with slack bot to show how to utilize them.
 
-Some other example codes are also included, such as Serverless Gameserver and tools.
+Some other example codes are also included, such as Serverless Gameserver and stable-diffusion api deploy.
 
 ## License
 
