@@ -1,0 +1,7 @@
+FROM public.ecr.aws/l1s7l7p8/all-in-one-ai-stable-diffusion-webui-inference:latest
+
+COPY serve /opt/ml/code
+COPY stable-diffusion-webui /opt/ml/code/
+
+RUN git clone https://github.com/Mikubill/sd-webui-controlnet.git /opt/ml/code/extensions/sd_webui_controlnet
+RUN git clone https://github.com/kohya-ss/sd-webui-additional-networks.git /opt/ml/code/extensions/sd_webui_additional_networks
