@@ -8,6 +8,28 @@
 
 
 
+## 原理解释
+
+1. 开源的 stable-diffusion-webui 是支持 api 调用的，在运行 webui.sh 的时候带上 --api 参数即可，具体可参考 [Stable-Diffusion-Webui-API](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/API)
+2. 在 AWS 上以 Serverless 的方式部署 Stable Diffusion 的异步推理原理如下：
+   1. 在 Sagemaker 上部署 stable-diffusion-webui 的代码和模型，代码以容器镜像的方式存在 ECR，模型以 tarball 的形式存在 S3
+   2. 用代码（ECR 中的容器镜像）和模型（S3 中的 tarball）创建 Sagemaker Inference Endpoint 
+   3. 用 APIGW+Lambda 来调用 Sagemaker Inference Endpoint
+3. 用这种方式部署 Stable Diffusion 的 API 不仅可以利用 Serverless 的优势，而且可以动态扩缩 Endpoint 的容量
+
+
+
+## 部署流程
+
+1. 准备环境，EC2 以及部署代码
+2. 构建容器镜像，容器镜像的作用是为了后续创建 inference Endpoint 使用
+3. 打包模型，按照一定的目录结构打包模型，上传到 S3，后续也会在创建 inference Endpoint 时用到
+4. 准备 Sagemaker Studio 环境，使用 Sagemaker Studio Notebook 执行以下流程
+5. 创建 Inference Endpoint，使用 Notebook 创建 Sagemaker Inference Endpoint 用于推理
+6. 测试 inference Endpoint，使用 Notebook 测试 inference Endpoint
+
+
+
 ## 环境准备
 
 1. 一台 EC2，有 root 权限，普通 m5/m6i large 即可
@@ -15,7 +37,7 @@
 2. 下载 `stable-diffusion-webui-api-main` 代码 repo
 
    1. ```shell
-      git clone git@github.com:aws-samples/amazon-ai-with-slack-bot.git
+      git clone https://github.com/aws-samples/amazon-ai-with-slack-bot.git
       ```
 
    2. ```shell
@@ -105,9 +127,9 @@ build_and_push.sh.lite us-east-1 # us-east-1 为 region，可以改为自己的 
 
 
 
-## 创建 Sagemaker Inference Endpoint
+## 准备 Sagemaker Studio 环境
 
-推荐使用 Sagemaker Studio Notebook 来创建 Inference Endpoint，更容易调试和修改
+使用 Sagemaker Studio Notebook 来创建 Inference Endpoint，更容易调试和修改
 
 
 
@@ -142,7 +164,7 @@ build_and_push.sh.lite us-east-1 # us-east-1 为 region，可以改为自己的 
 
 
 
-将 `create_inference_endpoint.ipynb` 文件上传到 Notebook
+将 `amazon-ai-with-slack-bot/stable-diffusion-webui-api-main`目录下的 `create_inference_endpoint.ipynb` 文件上传到 Notebook
 
 ![image-20230420142035459](/Users/ray/Library/Application Support/typora-user-images/image-20230420142035459.png)
 
