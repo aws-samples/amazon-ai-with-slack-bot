@@ -8,7 +8,6 @@ import utils
 
 # Get answer from chatGPT
 def get_ans(prompt):
-    return "Free Tier end. Developer is finding a way to pay..."
     openai.api_key = utils.get_secret_value('openai-key')
     messages = [{"role":"user", "content":prompt}]
     response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)

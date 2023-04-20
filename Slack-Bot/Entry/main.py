@@ -45,12 +45,16 @@ def is_input_valid(cmd, parsed_params):
 # Different lambda function with different system environment variable of SNSTOPIC
 def lambda_handler(event, context):
 
+    # Log all events
+    print(f"Archive Event: {event}")
+
     resource = event.get("resource")
     slack_body = event.get("body")
     headers = event.get("headers")
 
     # Verify request
     if not utils.verify_request(headers, slack_body):
+        print("Unauthorized request.")
         return {
             'statusCode': 403,
             'body': "Unauthorized"
@@ -59,8 +63,6 @@ def lambda_handler(event, context):
     # Parse request body
     parsed_params = parse_qs(slack_body)
 
-    # Log all events
-    print(f"Archive Event: {event}")
 
     # Get needed information from request body
     cmd = resource.split('/')[1].capitalize()

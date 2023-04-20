@@ -33,9 +33,11 @@ def verify_request(headers, body):
     return False
 
 def is_json(input_string):
+    print("is_json...")
     try:
         json.loads(input_string)
     except ValueError as e:
+        print(e)
         return False
     return True
 
