@@ -6,6 +6,13 @@
 
 待补充
 
+![diagram](images/readme/diagram.jpg)
+
+1. 客户端调用 APIGateway，透传请求（可以按自己需求做鉴权或过滤）到 Lambda
+2. Lambda 将请求的 payload 传到 Sagemaker inference Endpoint 进行异步推理
+3. 异步推理的结果会存到 S3
+4. 可以通过轮询图片是否生成或 S3 事件触发 Lambda 传回图片
+
 
 
 ## 原理解释
