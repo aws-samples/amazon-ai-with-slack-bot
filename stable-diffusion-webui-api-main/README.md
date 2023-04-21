@@ -4,8 +4,6 @@
 
 ## Stable Diffusion API 架构
 
-待补充
-
 ![diagram](images/readme/diagram.jpg)
 
 1. 客户端调用 APIGateway，透传请求（可以按自己需求做鉴权或过滤）到 Lambda
