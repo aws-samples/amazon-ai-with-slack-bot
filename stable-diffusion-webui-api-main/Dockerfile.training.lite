@@ -1,7 +1,0 @@
-FROM public.ecr.aws/l1s7l7p8/all-in-one-ai-stable-diffusion-webui-training:latest
-
-COPY train.py /opt/ml/code
-COPY stable-diffusion-webui /opt/ml/code/
-
-RUN rm -rf /opt/ml/code/extensions/sd_dreambooth_extension
-RUN git clone https://github.com/xieyongliang/sd_dreambooth_extension.git /opt/ml/code/extensions/sd_dreambooth_extension

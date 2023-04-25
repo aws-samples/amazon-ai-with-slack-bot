@@ -1,6 +1,4 @@
-[TOC]
-
-
+# stable-diffusion-webui-api 代码待公开
 
 ## Stable Diffusion API 架构
 
