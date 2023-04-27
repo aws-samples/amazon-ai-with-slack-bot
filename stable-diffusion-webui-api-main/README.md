@@ -35,7 +35,7 @@
 
 ## 环境准备
 
-1. 一台 EC2，有 root 权限，普通 m5/m6i large 即可
+1. 一台 EC2，有 root 权限，普通 m5/m6i large 即可，EBS 300G
 
 2. 在 EC2 上安装 docker（不同 Linux 发行版按官网操作步骤安装），后面需要使用 docker 在本地 build push 镜像到 ECR
 
