@@ -39,7 +39,9 @@
 
 2. 在 EC2 上安装 docker（不同 Linux 发行版按官网操作步骤安装），后面需要使用 docker 在本地 build push 镜像到 ECR
 
-3. 下载 `stable-diffusion-webui-api-main` 代码 repo
+3. 启动 docker
+
+4. 下载 `stable-diffusion-webui-api-main` 代码 repo
 
    1. ```shell
       git clone https://github.com/aws-samples/amazon-ai-with-slack-bot.git
