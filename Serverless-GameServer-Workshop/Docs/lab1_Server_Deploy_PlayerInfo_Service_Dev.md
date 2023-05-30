@@ -157,17 +157,17 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 **Cloudformation**
 
-![image-20230523145034421](/Users/ray/Library/Application Support/typora-user-images/image-20230523145034421.png)
+![image-20230523145034421](images/image-20230523145034421.png)
 
 
 
 **APIGateway**
 
-![image-20230523145157631](/Users/ray/Library/Application Support/typora-user-images/image-20230523145157631.png)
+![image-20230523145157631](images/image-20230523145157631.png)
 
 选择创建的 APIGateway，查看 APIGateway 的 Stage
 
-![image-20230523145333159](/Users/ray/Library/Application Support/typora-user-images/image-20230523145333159.png)
+![image-20230523145333159](images/image-20230523145333159.png)
 
 * 可以看到已创建的 Stage "dev"、path "/create_user" 以及调用这个 APIGateway 的 URL
 
@@ -175,11 +175,11 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 **Lambda**
 
-![image-20230525151347382](/Users/ray/Library/Application Support/typora-user-images/image-20230525151347382.png)
+![image-20230525151347382](images/image-20230525151347382.png)
 
 选择创建的 Lambda，查看触发 Lambda 事件配置
 
-![image-20230525151637990](/Users/ray/Library/Application Support/typora-user-images/image-20230525151637990.png)
+![image-20230525151637990](images/image-20230525151637990.png)
 
 * 可以看到这个 Lambda 函数是通过调用我们创建的 APIGateway /create_user 这个 path 来进行触发
 
@@ -204,15 +204,15 @@ curl -XPOST "https://aabbcc.execute-api.us-east-1.amazonaws.com/dev/create_user"
 
 可以通过 CloudWatch Log 来查看 Lambda 执行时的日志，选择 PlayerInfoFunction 这个 Lambda 的 log group
 
-![image-20230525152003753](/Users/ray/Library/Application Support/typora-user-images/image-20230525152003753.png)
+![image-20230525152003753](images/image-20230525152003753.png)
 
 选择最新的 log stream
 
-![image-20230525152028036](/Users/ray/Library/Application Support/typora-user-images/image-20230525152028036.png)
+![image-20230525152028036](images/image-20230525152028036.png)
 
 一个完整的 Lambda 调用的日志
 
-![image-20230525152117798](/Users/ray/Library/Application Support/typora-user-images/image-20230525152117798.png)
+![image-20230525152117798](images/image-20230525152117798.png)
 
 * START RequestId：记录 Lambda 被调用的 ID 和时间
 * {'resource': '/create_user' .....}：代码中打印的 event 内容，这些数据是由 APIGateway 传到 Lambda 进行处理
@@ -227,7 +227,7 @@ curl -XPOST "https://aabbcc.execute-api.us-east-1.amazonaws.com/dev/create_user"
 aws logs tail /aws/lambda/Serverless-GameServer-Worksho-PlayerInfoFunction-1xgY5j45ekEX --follow
 ```
 
-![image-20230523182956729](/Users/ray/Library/Application Support/typora-user-images/image-20230523182956729.png)
+![image-20230523182956729](images/image-20230523182956729.png)
 
 
 
@@ -270,9 +270,9 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 ##### 1.2.2 检查 Dynamodb 资源创建结果
 
-![image-20230523181043738](/Users/ray/Library/Application Support/typora-user-images/image-20230523181043738.png)
+![image-20230523181043738](images/image-20230523181043738.png)
 
-![image-20230523181401038](/Users/ray/Library/Application Support/typora-user-images/image-20230523181401038.png)
+![image-20230523181401038](images/image-20230523181401038.png)
 
 
 
@@ -365,23 +365,23 @@ curl -XPOST "https://aabbcc.execute-api.us-east-1.amazonaws.com/dev/create_user"
 
 创建 role
 
-![image-20230523190900263](/Users/ray/Library/Application Support/typora-user-images/image-20230523190900263.png)
+![image-20230523190900263](images/image-20230523190900263.png)
 
 trusted entity type 选择 AWS service，Use case 选择 Lambda
 
-![image-20230523191040636](/Users/ray/Library/Application Support/typora-user-images/image-20230523191040636.png)
+![image-20230523191040636](images/image-20230523191040636.png)
 
 添加 Administrator 权限，此处 workshop 仅做演示，为后续 Lambda 操作其他 AWS 资源方便而直接赋 Administrator 权限，未满足最小权限原则，生产环境中请按最小权限原则进行设置
 
-![image-20230523191146798](/Users/ray/Library/Application Support/typora-user-images/image-20230523191146798.png)
+![image-20230523191146798](images/image-20230523191146798.png)
 
 填入 Role name "Workshop-Lambda-Role" 进行创建
 
-![image-20230523191428955](/Users/ray/Library/Application Support/typora-user-images/image-20230523191428955.png)
+![image-20230523191428955](images/image-20230523191428955.png)
 
 创建完成后，找到刚刚创建的 Role 的资源标识 ARN
 
-![image-20230523191533374](/Users/ray/Library/Application Support/typora-user-images/image-20230523191533374.png)
+![image-20230523191533374](images/image-20230523191533374.png)
 
 修改 template.yaml 文件，将刚刚创建的 Workshop-Lambda-Role 关联到 Lambda
 
@@ -502,7 +502,7 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 我们在 PlayerInfoFunction 这个 Lambda 的 Events 里添加了 DeleteUserEvent，触发条件是 APIGateway 的 /delete_user path，在 Lambda 控制台查看配置更新结果
 
-![image-20230525152842298](/Users/ray/Library/Application Support/typora-user-images/image-20230525152842298.png)
+![image-20230525152842298](images/image-20230525152842298.png)
 
 
 
@@ -531,11 +531,11 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 在 HTML5 代码目录下启动一个 http server，客户端代码获取方式请参考 1_prerequisite
 
-![image-20230525193701773](/Users/ray/Library/Application Support/typora-user-images/image-20230525193701773.png)
+![image-20230525193701773](images/image-20230525193701773.png)
 
 访问 localhost:8000/cj.html
 
- <img src="/Users/ray/Library/Application Support/typora-user-images/image-20230525194525012.png" alt="image-20230525194525012" style="zoom:33%;" />
+ <img src="images/image-20230525194525012.png" alt="image-20230525194525012" style="zoom:33%;" />
 
 
 
@@ -543,7 +543,7 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 一般游戏客户端会通过配置文件或请求 Serverlist 文件来实现，本 Workshop 为展示客户端访问逻辑，通过手动配置服务端地址 Serverlist
 
- <img src="/Users/ray/Library/Application Support/typora-user-images/image-20230525195011507.png" alt="image-20230525195011507" style="zoom:33%;" />
+ <img src="images/image-20230525195011507.png" alt="image-20230525195011507" style="zoom:33%;" />
 
 
 
@@ -563,7 +563,7 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 填入玩家姓名，点击右边方块确认
 
- <img src="/Users/ray/Library/Application Support/typora-user-images/image-20230525195952090.png" alt="image-20230525195952090" style="zoom:33%;" />
+ <img src="images/image-20230525195952090.png" alt="image-20230525195952090" style="zoom:33%;" />
 
 **点击方块确认后客户端会执行以下行为**：
 
@@ -575,7 +575,7 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 没有任何返回，打开开发者模式查看运行日志
 
-<img src="/Users/ray/Library/Application Support/typora-user-images/image-20230525200132808.png" alt="image-20230525200132808" style="zoom:50%;" />
+<img src="images/image-20230525200132808.png" alt="image-20230525200132808" style="zoom:50%;" />
 
 发现是因为服务端不支持 CORS block 了来自本地 HTML5 的请求
 
@@ -691,13 +691,13 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 创建玩家
 
- <img src="/Users/ray/Library/Application Support/typora-user-images/image-20230526004042673.png" alt="image-20230526004042673" style="zoom:33%;" />
+ <img src="images/image-20230526004042673.png" alt="image-20230526004042673" style="zoom:33%;" />
 
 
 
 删除玩家
 
- <img src="/Users/ray/Library/Application Support/typora-user-images/image-20230526003938762.png" alt="image-20230526003938762" style="zoom:33%;" />
+ <img src="images/image-20230526003938762.png" alt="image-20230526003938762" style="zoom:33%;" />
 
 
 
