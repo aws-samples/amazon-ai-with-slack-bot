@@ -46,13 +46,6 @@ Default_Payload = {
         'script_args': [0, False, False, False, "", 1, "", 0, "", True, False, False]}
 }
 
-
-# Get secret value from secretsmanager
-def get_sd_config(config_name):
-    ssm_client = boto3.client("ssm")
-    config = json.loads(ssm_client.get_parameter(Name=config_name)["Parameter"]["Value"])
-    return config
-
 # Get image from Sagemaker
 def get_ans(prompt, channel):
 
