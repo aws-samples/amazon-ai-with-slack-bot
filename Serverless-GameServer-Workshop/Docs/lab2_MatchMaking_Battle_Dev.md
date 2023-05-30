@@ -16,7 +16,7 @@
 
 在 Lab1 中我们通过 SAM 开发了 Serverless 的 HTTP 玩家创建/删除服务，在 HTML5 页面创建玩家后，可以在开发者工具页面看到客户端自动去连了一个 WSS 地址，但是因为我们并没有配置 WSS 地址所以连接 close
 
-<img src="/Users/ray/Library/Application Support/typora-user-images/image-20230529101514947.png" alt="image-20230529101514947" style="zoom:50%;" />
+<img src="images/image-20230529101514947.png" alt="image-20230529101514947" style="zoom:50%;" />
 
 
 
@@ -206,11 +206,11 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 **APIGateway**
 
-![image-20230529122832044](/Users/ray/Library/Application Support/typora-user-images/image-20230529122832044.png)
+![image-20230529122832044](images/image-20230529122832044.png)
 
-![image-20230529134454889](/Users/ray/Library/Application Support/typora-user-images/image-20230529134454889.png)
+![image-20230529134454889](images/image-20230529134454889.png)
 
-![image-20230529135631650](/Users/ray/Library/Application Support/typora-user-images/image-20230529135631650.png)
+![image-20230529135631650](images/image-20230529135631650.png)
 
 * 通过 APIGateway Integration 将客户端请求转发给 Lambda
 
@@ -218,7 +218,7 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 **Lambda**
 
-![image-20230529135440731](/Users/ray/Library/Application Support/typora-user-images/image-20230529135440731.png)
+![image-20230529135440731](images/image-20230529135440731.png)
 
 * 可以看到**没有在 Lambda 资源里配置 Events 属性，控制台上看到的 Lambda trigger 为空**
 * 这个 Lambda 是通过 APIGateway 的 Integration 来将 APIGateway 和它连接起来
@@ -243,7 +243,7 @@ error: Unexpected server response: 403
 
 查看 APIGateway Deployment
 
-![image-20230529151839923](/Users/ray/Library/Application Support/typora-user-images/image-20230529151839923.png)
+![image-20230529151839923](images/image-20230529151839923.png)
 
 * Deployment 为空，APIGateway 尚未部署
 
@@ -274,7 +274,7 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 查看资源创建结果
 
-![image-20230529152952394](/Users/ray/Library/Application Support/typora-user-images/image-20230529152952394.png)
+![image-20230529152952394](images/image-20230529152952394.png)
 
 通过 wscat 命令连接 APIGateway
 
@@ -296,7 +296,7 @@ error: Unexpected server response: 500
 
 在 console 启用 APIGateway 的执行日志
 
-![image-20230529145805616](/Users/ray/Library/Application Support/typora-user-images/image-20230529145805616.png)
+![image-20230529145805616](images/image-20230529145805616.png)
 
 * 启用 APIGateway 执行日志之前，要先配置一个 role 让 APIGateway 有权限向 CloudWatch Log 写入日志
 
@@ -306,25 +306,25 @@ error: Unexpected server response: 500
 
 **创建 role**
 
-![image-20230529150127454](/Users/ray/Library/Application Support/typora-user-images/image-20230529150127454.png)
+![image-20230529150127454](images/image-20230529150127454.png)
 
-![image-20230529150154283](/Users/ray/Library/Application Support/typora-user-images/image-20230529150154283.png)
+![image-20230529150154283](images/image-20230529150154283.png)
 
-![image-20230529150228881](/Users/ray/Library/Application Support/typora-user-images/image-20230529150228881.png)
+![image-20230529150228881](images/image-20230529150228881.png)
 
 **将 role 赋值给 APIGateway**
 
 
 
-![image-20230529150359452](/Users/ray/Library/Application Support/typora-user-images/image-20230529150359452.png)
+![image-20230529150359452](images/image-20230529150359452.png)
 
 复制刚刚创建 role 的 ARN 配置到 APIGateway，Save
 
-![image-20230529150459615](/Users/ray/Library/Application Support/typora-user-images/image-20230529150459615.png)
+![image-20230529150459615](images/image-20230529150459615.png)
 
 ##### 1.7.3 启用 APIGateway Execution Log
 
-![image-20230529150715081](/Users/ray/Library/Application Support/typora-user-images/image-20230529150715081.png)
+![image-20230529150715081](images/image-20230529150715081.png)
 
 ##### 1.7.4 重新访问 Websocket 查看日志
 
@@ -334,11 +334,11 @@ error: Unexpected server response: 500
 > %
 ```
 
-![image-20230529153246679](/Users/ray/Library/Application Support/typora-user-images/image-20230529153246679.png)
+![image-20230529153246679](images/image-20230529153246679.png)
 
-![image-20230529153313349](/Users/ray/Library/Application Support/typora-user-images/image-20230529153313349.png)
+![image-20230529153313349](images/image-20230529153313349.png)
 
-![image-20230529153500738](/Users/ray/Library/Application Support/typora-user-images/image-20230529153500738.png)
+![image-20230529153500738](images/image-20230529153500738.png)
 
 * **发现是 APIGateway 调用 Lambda 的时候没有权限**
 
@@ -350,11 +350,11 @@ error: Unexpected server response: 500
 
 **Lab1**
 
-![image-20230529154106704](/Users/ray/Library/Application Support/typora-user-images/image-20230529154106704.png)
+![image-20230529154106704](images/image-20230529154106704.png)
 
 **Lab2**
 
-![image-20230529154240308](/Users/ray/Library/Application Support/typora-user-images/image-20230529154240308.png)
+![image-20230529154240308](images/image-20230529154240308.png)
 
 * 因为 Lab1 的 Lambda 配置了 Event trigger，所以自动创建了 resource-based policy
 * Lab2 的 Lambda 是一个独立的资源没有配置 Event trigger，所以没有 resource-based policy，导致 APIGateway 没有权限去调用它
@@ -390,7 +390,7 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 查看资源创建结果
 
-![image-20230529154918563](/Users/ray/Library/Application Support/typora-user-images/image-20230529154918563.png)
+![image-20230529154918563](images/image-20230529154918563.png)
 
 
 
@@ -407,7 +407,7 @@ Connected (press CTRL+C to quit)
 
 查看 Websocket Lambda 日志
 
-![image-20230529155609431](/Users/ray/Library/Application Support/typora-user-images/image-20230529155609431.png)
+![image-20230529155609431](images/image-20230529155609431.png)
 
 * 在 wss URL 里没有加上 user_id 的 query string，服务端自动创建了一个 user_id
 
@@ -420,7 +420,7 @@ Connected (press CTRL+C to quit)
 ~:
 ```
 
-![image-20230529160749197](/Users/ray/Library/Application Support/typora-user-images/image-20230529160749197.png)
+![image-20230529160749197](images/image-20230529160749197.png)
 
 至此 Websocket Hello World 服务部署完成
 
@@ -725,7 +725,7 @@ Connected (press CTRL+C to quit)
 
 查看日志
 
-![image-20230529181208430](/Users/ray/Library/Application Support/typora-user-images/image-20230529181208430.png)
+![image-20230529181208430](images/image-20230529181208430.png)
 
 
 
@@ -855,11 +855,11 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 wscat 测试代码逻辑
 
-![image-20230529192908089](/Users/ray/Library/Application Support/typora-user-images/image-20230529192908089.png)
+![image-20230529192908089](images/image-20230529192908089.png)
 
 查看 Lambda 日志
 
-![image-20230529193002092](/Users/ray/Library/Application Support/typora-user-images/image-20230529193002092.png)
+![image-20230529193002092](images/image-20230529193002092.png)
 
 **joinroom 逻辑开发部署完成**
 
@@ -1249,23 +1249,23 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 #### 4.4 测试战斗逻辑
 
-<img src="/Users/ray/Library/Application Support/typora-user-images/image-20230530042712155.png" alt="image-20230530042712155" style="zoom:80%;" />
+<img src="images/image-20230530042712155.png" alt="image-20230530042712155" style="zoom:80%;" />
 
 完整的战斗日志
 
-![image-20230530044230485](/Users/ray/Library/Application Support/typora-user-images/image-20230530044230485.png)
+![image-20230530044230485](images/image-20230530044230485.png)
 
 ### 5. 配置客户端进行匹配对战
 
 #### 5.1 启动两个客户端
 
- ![image-20230530045420358](/Users/ray/Library/Application Support/typora-user-images/image-20230530045420358.png)
+ ![image-20230530045420358](images/image-20230530045420358.png)
 
-![image-20230530045618169](/Users/ray/Library/Application Support/typora-user-images/image-20230530045618169.png)
+![image-20230530045618169](images/image-20230530045618169.png)
 
 #### 5.2 分别给两个客户端配置服务端地址并创建用户
 
-![image-20230530045952385](/Users/ray/Library/Application Support/typora-user-images/image-20230530045952385.png)
+![image-20230530045952385](images/image-20230530045952385.png)
 
 * 用户创建后，会自动将 user_id 作为 query_string 去和 Websocket APIGateway 建立连接
 
@@ -1275,11 +1275,11 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 选择双人模式进行匹配
 
-![image-20230530050152191](/Users/ray/Library/Application Support/typora-user-images/image-20230530050152191.png)
+![image-20230530050152191](images/image-20230530050152191.png)
 
 匹配完成
 
-![image-20230530050232297](/Users/ray/Library/Application Support/typora-user-images/image-20230530050232297.png)
+![image-20230530050232297](images/image-20230530050232297.png)
 
 
 
@@ -1289,7 +1289,7 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 ##### 5.4.1 平局
 
-![image-20230530050337851](/Users/ray/Library/Application Support/typora-user-images/image-20230530050337851.png)
+![image-20230530050337851](images/image-20230530050337851.png)
 
 
 
@@ -1297,8 +1297,8 @@ sam sync --stack-name Serverless-GameServer-Workshop
 
 左边的玩家积累超过 10 分，点击左下角按钮进行攻击，右边玩家被 FREEZE 无法跳跃
 
-![image-20230530050603391](/Users/ray/Library/Application Support/typora-user-images/image-20230530050603391.png)
+![image-20230530050603391](images/image-20230530050603391.png)
 
 ##### 5.4.3 战斗结算
 
-![image-20230530050449367](/Users/ray/Library/Application Support/typora-user-images/image-20230530050449367.png)
+![image-20230530050449367](images/image-20230530050449367.png)
