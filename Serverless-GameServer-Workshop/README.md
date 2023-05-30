@@ -1,7 +1,3 @@
-
-
-[TOC]
-
 ## Serverless GameServer Workshop 介绍
 
 本 Workshop 针对游戏服务端开发人员，主要介绍 AWS serverless 开发模式在游戏场景下的视线
