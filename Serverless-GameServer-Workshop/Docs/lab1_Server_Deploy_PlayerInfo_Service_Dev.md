@@ -381,6 +381,8 @@ trusted entity type 选择 AWS service，Use case 选择 Lambda
 
 修改 template.yaml 文件，将刚刚创建的 Workshop-Lambda-Role 关联到 Lambda
 
+* 将 Role 资源改为自己创建的
+
 ```yaml
   PlayerInfoFunction:
     Type: AWS::Serverless::Function # 资源类型，此处是 Lambda
@@ -467,12 +469,14 @@ def main_handler(event, context):
 
 ##### 1.3.2 修改 template.yaml 以实现访问 APIGateway /delete_user path 可以触发 main_handler
 
+* 将 Role 资源改为自己创建的
+
 ```yaml
   PlayerInfoFunction:
     Type: AWS::Serverless::Function # 资源类型，此处是 Lambda
     Properties:
       ......
-      Role: "arn:aws:iam::930179054915:role/Workshop-Lambda-Role" # Lambda 执行时的权限
+      Role: "arn:aws:iam::123456789:role/Workshop-Lambda-Role" # Lambda 执行时的权限
       Events: # Lambda 事件触发配置
         CreateUserEvent: # 名称
           ......

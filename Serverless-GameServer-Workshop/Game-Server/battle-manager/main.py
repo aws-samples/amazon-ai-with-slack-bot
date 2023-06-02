@@ -17,7 +17,7 @@ def getConnIDFromUserID(user_id):
     return -1
 
 def server_response(connection_id, message):
-    apig_management_client = boto3.client('apigatewaymanagementapi',endpoint_url="https://4deycosvil.execute-api.us-east-1.amazonaws.com/dev")
+    apig_management_client = boto3.client('apigatewaymanagementapi',endpoint_url="https://aabbcc.execute-api.us-east-1.amazonaws.com/dev")
     send_response = apig_management_client.post_to_connection(Data=message, ConnectionId=connection_id)
 
 # 通过 connection_id 获取 user_id

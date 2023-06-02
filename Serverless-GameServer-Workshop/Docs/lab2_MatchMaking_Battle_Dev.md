@@ -32,7 +32,7 @@
 
 编辑 Lab1 的 `template.yaml`文件，添加如下内容
 
-* Role：修改为你自己创建的 role ARN
+* 将 Role 资源改为自己创建的
 
 ```yaml
 ......

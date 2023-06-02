@@ -29,7 +29,7 @@ Resources:
       Runtime: python3.9 # Lambda 执行代码的 runtime，支持 NodeJS, Python, Java, Golang 等
       Architectures: # 底层运行代码的 CPU 架构
         - arm64 # 一般代码没有特殊依赖推荐 ARM 架构，更高性价比
-      Role: "arn:aws:iam::930179054915:role/Workshop-Lambda-Role" # Lambda 执行时的权限
+      Role: "arn:aws:iam::123456789:role/Workshop-Lambda-Role" # Lambda 执行时的权限
       Events: # Lambda 事件触发配置
         CreateUserEvent: # 名称
           Type: Api # 事件触发类型，此处为 APIGATEWAY
@@ -101,7 +101,7 @@ Resources:
       Runtime: python3.9
       Architectures:
         - arm64
-      Role: "arn:aws:iam::930179054915:role/Workshop-Lambda-Role"
+      Role: "arn:aws:iam::123456789:role/Workshop-Lambda-Role"
 
   # APIGateway 的 Integration 资源，用于连接 Lambda 和 Websocket APIGateway 的 route
   MainServerIntegration:
@@ -195,7 +195,7 @@ Resources:
       Runtime: python3.9
       Architectures:
         - arm64
-      Role: "arn:aws:iam::930179054915:role/Workshop-Lambda-Role"
+      Role: "arn:aws:iam::123456789:role/Workshop-Lambda-Role"
 
   # 用于连接 APIGateway 和 Lambda
   RoomMgrIntegration:
@@ -286,7 +286,7 @@ Resources:
       Runtime: python3.9
       Architectures:
         - arm64
-      Role: "arn:aws:iam::930179054915:role/Workshop-Lambda-Role"
+      Role: "arn:aws:iam::123456789:role/Workshop-Lambda-Role"
 
   # 用于连接 APIGateway 和 Lambda
   BattleMgrIntegration:

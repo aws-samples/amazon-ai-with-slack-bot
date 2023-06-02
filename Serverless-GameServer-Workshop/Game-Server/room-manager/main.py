@@ -28,7 +28,7 @@ def getConnIDFromUserID(user_id):
 # 通过 APIGatewayManagementAPI 发送消息给客户端
 # WSS_SERVER 为 API Gateway 的域名
 def server_response(connection_id, message):
-    apig_management_client = boto3.client('apigatewaymanagementapi',endpoint_url="https://4deycosvil.execute-api.us-east-1.amazonaws.com/dev")
+    apig_management_client = boto3.client('apigatewaymanagementapi',endpoint_url="https://aabbcc.execute-api.us-east-1.amazonaws.com/dev")
     send_response = apig_management_client.post_to_connection(Data=message, ConnectionId=connection_id)
 
 # 创建新房间
