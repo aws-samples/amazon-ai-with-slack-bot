@@ -226,11 +226,6 @@ Resources:
       CodeUri: BackendFuncs/
       Handler: image_invoke.lambda_handler
       Runtime: python3.9
-      Environment:
-        Variables:
-          SD_CONFIG: SD-Config-1  #SD-Jumpstart
-          Sagemaker_Endpoint: Stable-Diffusion-V1V2 #Stable-Diffusion-Async
-          S3_InputBucket: slack-bot-aigc-images # Output path is set in sagemaker endpoint configuration
       Architectures:
         - arm64
       Layers:
