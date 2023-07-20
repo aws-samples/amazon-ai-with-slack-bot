@@ -2,78 +2,88 @@ import requests
 import json
 import boto3
 from slack_sdk import WebClient
+import uuid
 
 import sys
 sys.path.append('/opt/python/libs')
 import utils
 
-Sagemaker_Endpoint = utils.get_secret_value('sd-endpoint')
+# Don't get this config from OS environment to avoid resync infra
+Sagemaker_Endpoint = "infer-endpoint-a5865a2"
+S3_InputBucket = "slack-bot-aigc-images-us-west-2"
 
 Default_Payload = {
-    "stable_diffusion_model": "v1-5-pruned-emaonly.safetensors",
-    "sagemaker_endpoint": Sagemaker_Endpoint,
-    "task_type": "txt2img",
-    "prompt": "a cute panda",
-    "denoising_strength": 0.75,
-    "embeddings": [],
-    "lora_model": [],
-    "hypernetwork_model": [],
-    "controlnet_model": [],
-    "denoising_strength": 0.75,
-    "styles": [""],
-    "seed": -1,
-    "subseed": -1,
-    "subseed_strength": 0,
-    "seed_resize_from_h": -1,
-    "seed_resize_from_w": -1,
-    "batch_size": 1,
-    "n_iter": 1,
-    "steps": 50,
-    "cfg_scale": 7,
-    "width": 512,
-    "height": 512,
-    "restore_faces": "true",
-    "tiling": "false",
-    "negative_prompt": "",
-    "override_settings": {},
-    "script_args": [],
-    "sampler_index": "Euler",
-    "script_name": "",
-    "enable_hr": "false",
-    "firstphase_width": 0,
-    "firstphase_height": 0,
-    "hr_scale": 2,
-    "hr_upscaler": "string",
-    "hr_second_pass_steps": 0,
-    "hr_resize_x": 0,
-    "hr_resize_y": 0,
+    'task': 'text-to-image',
+    'model': 'rpg.safetensors',
+    'txt2img_payload': {
+        'enable_hr': False,
+        'denoising_strength': 0.7,
+        'firstphase_width': 0,
+        'firstphase_height': 0,
+        'prompt': '',
+        'negative_prompt': '',
+        'styles': ['None', 'None'],
+        'seed': -1.0,
+        'subseed': -1.0,
+        'subseed_strength': 0,
+        'seed_resize_from_h': 0,
+        'seed_resize_from_w': 0,
+        'sampler_index': 'DPM++ 2S a Karras',
+        'batch_size': 1,
+        'n_iter': 1,
+        'steps': 35,
+        'cfg_scale': 7,
+        'width': 512,
+        'height': 512,
+        'restore_faces': True,
+        'tiling': False,
+        'eta': 1,
+        's_churn': 0,
+        's_tmax': None,
+        's_tmin': 0,
+        's_noise': 1,
+        'override_settings': {},
+        'script_args': [0, False, False, False, "", 1, "", 0, "", True, False, False]}
 }
 
 # Get image from Sagemaker
 def get_ans(prompt, channel):
 
-    api-key = utils.get_secret_value('sd-api-key')
-    headers = {
-        'x-api-key': api-key,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    }
-
+    # Save sagemaker async inference input to S3
+    inference_id = str(uuid.uuid4())
+    sagemaker_client = boto3.client("sagemaker-runtime")
     payload = Default_Payload
     model = prompt.split(" ")[0]
     prompt = ' '.join(prompt.split(" ")[1:])
     if utils.is_json(prompt):
         prompt = json.loads(prompt)
-        for key in payload:
+        for key in payload["txt2img_payload"]:
             if key in prompt:
-                payload[key] = prompt[key]
+                payload["txt2img_payload"][key] = prompt[key]
     else:
-        payload["prompt"] = prompt
-    payload["stable_diffusion_model"] = model
+        payload["txt2img_payload"]["prompt"] = prompt
+    payload["model"] = model
 
-    invoke_url = utils.get_secret_value('sd-invoke-url')
-    response = requests.post(invoke_url, headers=headers, json=payload)
-    return response['output_path']
+    s3_resource = boto3.resource("s3")
+    s3_object = s3_resource.Object(S3_InputBucket, f"inputs/{inference_id}")
+    s3_object.put(Body=bytes(json.dumps(payload).encode('UTF-8')))
+
+    # Invoke Sagemaker Async Endpoint
+    input_location = f"s3://{S3_InputBucket}/inputs/{inference_id}"
+    response = sagemaker_client.invoke_endpoint_async(
+        EndpointName=Sagemaker_Endpoint,
+        ContentType='application/json',
+        Accept="application/json;jpeg",
+        InputLocation=input_location
+    )
+    output_location = response["OutputLocation"]
+    object_key = "/".join(output_location.split("/")[3:])
+    save_session(object_key, channel)
+    return output_location
+
+def save_session(object_key, channel):
+    ddb_table = boto3.resource('dynamodb').Table("Slack-Bot-Image")
+    ddb_table.put_item(Item={'object_key': object_key, 'channel': channel})
 
 # Formatted message
 def format_response(prompt, ans):
